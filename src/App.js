@@ -18,16 +18,17 @@ export default function App() {
   };
 
   const getShareImage = (selector, options) => {
-    let { imageQuality, imageType, finalSize, compressQuality } = options;
-    toJpeg(selector, { quality: imageQuality }).then((dataUrl) => {
-      toBlob(dataUrl, imageType).then((blob) => {
-        if (blob.size > finalSize) {
-          imageQuality = imageQuality - compressQuality;
-          getShareImage(selector, { ...options, imageQuality: imageQuality });
-        } else {
-          console.log("hi", URL.createObjectURL(blob));
-          return URL.createObjectURL(blob);
-        }
+    return new Promise((resolve) => {
+      let { imageQuality, imageType, finalSize, compressQuality } = options;
+      toJpeg(selector, { quality: imageQuality }).then((dataUrl) => {
+        toBlob(dataUrl, imageType).then((blob) => {
+          if (blob.size > finalSize) {
+            imageQuality = imageQuality - compressQuality;
+            getShareImage(selector, { ...options, imageQuality: imageQuality });
+          } else {
+            resolve(URL.createObjectURL(blob));
+          }
+        });
       });
     });
   };
@@ -39,9 +40,9 @@ export default function App() {
     finalSize: 4194304, //4mb Size
   };
 
-  const getBlobData = () => {
-    let URL = getShareImage(document.getElementById("app"), options);
-    console.log(URL);
+  const getBlobData = async () => {
+    let URL = await getShareImage(document.getElementById("app"), options);
+    console.log("YEAH I GENERATED", URL);
   };
 
   return (
